@@ -114,7 +114,7 @@ else:
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Automated Port Discovery**")
 st.sidebar.markdown(
-    "Designed for **MathCo** as a generic, automated port discovery ML engine. "
+    "A generic, automated port discovery ML engine. "
     "Reads raw GPS traces, groups mooring events, and forecasts delays across all discovered harbors."
 )
 
