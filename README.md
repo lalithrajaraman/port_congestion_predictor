@@ -1,6 +1,7 @@
 # US Vessel Dwell Time Prediction Pipeline
+### *An Enterprise-Grade Spatial-Temporal Machine Learning & Analytics Framework*
 
-An end-to-end Machine Learning pipeline and interactive 3D spatial analytics dashboard to predict remaining dwell times (wait-to-berth hours) for approaching vessels in US waterways.
+This repository implements an end-to-end Machine Learning pipeline and interactive 3D spatial analytics dashboard to predict remaining dwell times (wait-to-berth hours) for approaching vessels in US waterways.
 
 ---
 
@@ -113,11 +114,63 @@ python -m streamlit run app.py
 
 ---
 
-## 7. Production Roadmap & Mitigations
+## 7. Enterprise Production & MLOps Architecture (MathCo Blueprint)
 
-*   **Temporal Right-Censoring**: Because the dataset covers exactly 24 hours, wait-time prediction is constrained near the start/end bounds of the day. In production, training on a **7 to 30-day continuous window** resolves censoring.
-*   **True Density Clustering**: Transitioning from grid rounding to **DBSCAN** or **HDBSCAN** spatial clustering allows port shapes to be represented dynamically as polygons instead of point centroids.
-*   **Extrapolation**: Tree models cannot extrapolate beyond historical wait limits. Implementing a hybrid Linear-Tree architecture (e.g. Ridge Regression + XGBoost) would allow the model to estimate record-high delays correctly during severe port congestion events.
+To scale this framework into a production-grade analytics engine matching enterprise consulting standards (e.g. **TheMathCompany** client delivery), the system design maps to the following architecture:
+
+```mermaid
+graph TD
+    subgraph Ingestion [1. Streaming Ingestion]
+        AIS[Live AIS API Streams] --> Kafka[Apache Kafka / AWS Kinesis]
+        Macro[Macro Weather & Strike APIs] --> Kafka
+        Land[Intermodal Truck/Rail APIs] --> Kafka
+    end
+
+    subgraph Pipeline [2. Orchestration & Feature Store]
+        Kafka --> Airflow[Apache Airflow Pipeline]
+        Airflow --> Processing[Vectorized Feature Engineering]
+        Processing --> Store[Feast / Feature Store]
+    end
+
+    subgraph Modeling [3. MLOps & Advanced Modeling]
+        Store --> GNN[Spatial-Temporal GNN Model]
+        Store --> Survival[Survival Analysis Model]
+        GNN --> MLflow[MLflow Model Registry]
+        Survival --> MLflow
+        MLflow --> Drift[Evidently AI Drift Monitor]
+    end
+
+    subgraph Service [4. Service & Decision Delivery]
+        MLflow --> API[FastAPI Prediction Service]
+        API --> SHAP[SHAP Explainability Engine]
+        SHAP --> Streamlit[Interactive 'What-If' Dashboard]
+        API --> Streamlit
+    end
+```
+
+### 📊 Four Pillars of Enterprise Refinement
+
+### 1. Advanced Supply Chain Context (Feature Engineering)
+Standard machine learning models rely purely on historical coordinates. To make this industry-grade, the feature store should ingest:
+*   **Real-time AIS Specifications**: Dynamic drafts and headings to gauge precise arrival corridors.
+*   **Port Constraints**: Integration of berth occupancy schedules, crane operating capacity, and labor union shifts (weekend vs. weekday work slowdowns).
+*   **Macro Disruptions**: Flag features representing seasonal rushes (e.g. Chinese New Year peak shipping), labor strikes, and regional weather anomalies (typhoons, high winds).
+*   **Intermodal Landside Backlogs**: Downstream constraints such as truck turn times, chassis availability, and rail yard dwell times to identify landside container bottlenecks.
+
+### 2. Upgraded Model Architecture (Decision Science)
+*   **Spatial-Temporal Graph Networks**: Ports do not operate in isolation. A **Graph Neural Network (GNN)** should model spatial connections, demonstrating how congestion in one key hub (e.g., Shanghai) cascades down to destination ports (e.g., LA/Long Beach) weeks later.
+*   **Time-Series Deep Learning**: LSTM (Long Short-Term Memory) or Temporal Fusion Transformers (TFT) to capture multi-scale seasonal trends.
+*   **Survival Analysis**: Frame the prediction target not simply as a regression problem, but as a survival curve (Cox Proportional Hazards) calculating the *probability* of a vessel remaining stuck at anchorage beyond $X$ hours.
+
+### 3. Enterprise MLOps & Productionization
+*   **Streaming Pipelines**: Transition from static file processing to an event-driven stream using **Apache Kafka** or **AWS Kinesis** to ingest live vessel coordinates.
+*   **Workflow Orchestration**: Wrap the data extraction, cleaning, and modeling steps into an automated pipeline using **Apache Airflow** or **Prefect**.
+*   **Drift Monitoring**: Implement **Evidently AI** and **MLflow** to monitor data drift and feature shifts, automatically alerting engineers and triggering model retraining when global shipping lanes change.
+
+### 4. Business Value Delivery (Explainable AI & Simulation UI)
+*   **Explainable AI (XAI)**: Integrate **SHAP** directly into the interface. A terminal operator needs to understand *why* the model predicts a 48-hour delay (e.g. is it driven by local wind speeds or terminal queue congestion?).
+*   **Interactive 'What-If' Simulation**: Extend the Streamlit application to allow logistics managers to run scenario planning:
+    > *"If we reroute Vessel A to Terminal 3 instead of Terminal 1, how does the total port dwell time change?"*
 
 ---
 
